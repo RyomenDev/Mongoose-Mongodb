@@ -1,5 +1,16 @@
 # Resolving `_id` Query Issues in MongoDB
 
+## How to Check if \_id is ObjectId or String?
+
+Run this in MongoDB shell:
+
+```javascript
+db.collectionName.find({}, { _id: 1 }).limit(5);
+```
+
+- If \_id`looks like`{ "\_id": ObjectId("66a7e7b58ef3ee1506dd07bd") }`, it's an ObjectId.
+- If `_id` looks like `{ "_id": "66a7e7b58ef3ee1506dd07bd" }`, it's stored as a string.
+
 ## I - Issue First
 
 The issue likely arises from how you're querying MongoDB. The `_id` field in MongoDB is stored as an **ObjectId**, and when querying, you must ensure that `productId` is correctly converted into an `ObjectId` to match the stored format.
@@ -50,12 +61,65 @@ const query = mongoose.isValidObjectId(productId)
 const product = await Product.findOne(query);
 ```
 
+Run this in **MongoDB shell**:
+
+```
+db.collectionName.find({}).forEach(doc => {
+    if (typeof doc._id === "string") {
+        let newId = ObjectId(doc._id);
+        let newDoc = { ...doc, _id: newId }; // Create a new document with ObjectId
+
+        // Insert the new document with ObjectId
+        db.collectionName.insertOne(newDoc);
+
+        // Delete the old document with string _id
+        db.collectionName.deleteOne({ _id: doc._id });
+
+        print("Converted:", doc._id, "→", newId);
+    }
+});
+```
+
+**Node.js (Mongoose) Approach**
+
+```
+const mongoose = require("mongoose");
+
+mongoose.connect("mongodb://localhost:27017/yourDatabase", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+});
+
+const collection = mongoose.connection.collection("yourCollection");
+
+async function convertStringIdToObjectId() {
+    const docs = await collection.find({}).toArray();
+
+    for (let doc of docs) {
+        if (typeof doc._id === "string") {
+            const newId = new mongoose.Types.ObjectId(doc._id);
+            const newDoc = { ...doc, _id: newId };
+
+            await collection.insertOne(newDoc); // Insert with new _id
+            await collection.deleteOne({ _id: doc._id }); // Delete old
+
+            console.log("Converted:", doc._id, "→", newId);
+        }
+    }
+
+    console.log("Conversion completed.");
+    mongoose.connection.close();
+}
+
+convertStringIdToObjectId();
+```
+
 ### 🔍 Explanation:
+
 1. **Check if `productId` is an `ObjectId` using `mongoose.isValidObjectId(productId)`**.
 2. If `true`, convert `productId` to `ObjectId` using `new mongoose.Types.ObjectId(productId)`.
 3. If `false`, treat `_id` as a regular string.
 4. **Use `findOne()` instead of `findById()`** because `findById()` only works with `ObjectId`.
 
-✅ **Now the query works whether _id is stored as an ObjectId or a string! 🚀**
-
+✅ **Now the query works whether \_id is stored as an ObjectId or a string! 🚀**
 
