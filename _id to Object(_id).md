@@ -141,3 +141,45 @@ Now that you've successfully converted `_id` from a **string** to **ObjectId** i
 2. Choose **"Python (PyMongo)" or "JavaScript (Node.js)"** depending on your backend.
 3. Copy the generated code.
 4. **Run the script** in your backend or MongoDB shell to update your collection.
+
+**If trying to convert the `_id` field from **string** to ObjectId using the `$toObjectId` operator in MongoDB Shell (Mongosh). However, this aggregation doesn't actually modify your collection—it only transforms the output temporarily.**
+
+#### ✅ How to Permanently Convert \_id to ObjectId
+
+Since MongoDB doesn't allow direct updates to `_id`, you need to **re-insert the documents with the correct type**.
+
+**1️⃣ Create a New Collection with ObjectId \_id**
+Run the following in **Mongosh**:
+
+```javascript
+<!-- db.products.aggregate([ -->
+db["products"].aggregate([
+    {
+        $addFields: {
+            _id: { $toObjectId: "$_id" }
+        }
+    },
+    {
+        $out: "products_new"  // Creates a new collection with converted _id
+    }
+]);
+```
+
+This creates a new collection products_new where \_id is an **ObjectId**.
+
+**2️⃣ Drop the Old Collection (⚠️ Backup First!)**
+Once you verify that products_new has the correct \_id format, **replace the original collection**:
+
+```javascript
+db.products.drop(); // Deletes old collection
+db.products_new.renameCollection("products"); // Rename new collection
+```
+
+**3️⃣ Verify**
+Run:
+
+```javascript
+db.products.findOne();
+```
+
+**✅ \_id should now be of type ObjectId. 🚀**
