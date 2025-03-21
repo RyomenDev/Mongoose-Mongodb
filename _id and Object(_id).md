@@ -30,3 +30,32 @@ const product = await Product.findOne({ \_id: mongoose.isValidObjectId(productId
 
 ✅ **Now the query will work regardless of whether productId is an ObjectId or a plain string. 🚀**
 
+## III - Issue Third
+
+If MongoDB database stores `_id` both as **ObjectId** and as a **string**, you need to handle both cases properly while querying.
+
+### ✅ Solution: Handle Both ObjectId and String \_id
+
+Use `mongoose.isValidObjectId()` to check if `productId` is a valid `ObjectId`. If it is, convert it; otherwise, treat it as a string.
+
+**Correct Query Handling Both ObjectId and String:**
+
+```javascript
+import mongoose from "mongoose";
+
+const query = mongoose.isValidObjectId(productId)
+? { \_id: new mongoose.Types.ObjectId(productId) }
+: { \_id: productId };
+
+const product = await Product.findOne(query);
+```
+
+### 🔍 Explanation:
+1. **Check if `productId` is an `ObjectId` using `mongoose.isValidObjectId(productId)`**.
+2. If `true`, convert `productId` to `ObjectId` using `new mongoose.Types.ObjectId(productId)`.
+3. If `false`, treat `_id` as a regular string.
+4. **Use `findOne()` instead of `findById()`** because `findById()` only works with `ObjectId`.
+
+✅ **Now the query works whether _id is stored as an ObjectId or a string! 🚀**
+
+
