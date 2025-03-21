@@ -110,3 +110,34 @@ If the above methods don’t work, you can:
 - **For few documents →** Use **Aggregation Pipeline** (Option 1).
 - **For many documents →** Use **Query Console** (Option 2).
 - **For complex changes →** Use **Export & Re-import** (Option 3).
+
+## 📌 Solution: Convert `_id` String to ObjectId in MongoDB Compass
+
+Go to the **Aggregation Tab in MongoDB Compass**. Follow these steps:
+
+#### ✅ Step 1: Use Aggregation to Convert `_id`
+
+1. Click **"Add Stage"**.
+2. Choose **"$set"** stage.
+3. In the input box, enter:
+
+```json
+{
+  "_id": { "$toObjectId": "$_id" }
+}
+```
+
+4. Click **"Run"** to preview changes.
+
+#### ✅ Step 2: Apply Changes
+
+- If the preview looks correct, **save the aggregation** and apply it to update your documents.
+
+Now that you've successfully converted `_id` from a **string** to **ObjectId** in the aggregation stage, the next step is to **apply these changes permanently** in your MongoDB collection.
+
+**🚀 Steps to Save Changes in MongoDB Compass**
+
+1. Click on **"Export to Language"** (found at the top near "Run").
+2. Choose **"Python (PyMongo)" or "JavaScript (Node.js)"** depending on your backend.
+3. Copy the generated code.
+4. **Run the script** in your backend or MongoDB shell to update your collection.
